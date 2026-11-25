@@ -44,6 +44,12 @@
       margin-bottom: 20px;
       user-select: all;
     }
+    .timer {
+      color: #fee75c;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
     .warning {
       background-color: rgba(237, 66, 69, 0.15);
       border: 1px solid #ed4245;
@@ -70,12 +76,17 @@
     .btn:hover {
       background-color: #4752c4;
     }
+    .expired-box {
+      color: #ff8a8c;
+      padding: 20px 0;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
+  <div class="card" id="main-card">
     <h1>🎮 Happy-Server</h1>
     <div class="address">happy-server.falix.gg</div>
+    <div class="timer" id="timer-display">残り有効時間: 計算中...</div>
     <p>下のボタンを押すと小さなウィンドウで起動ページが開きます。<br>人間確認のチェックを入れて起動してください。</p>
     <div class="warning">
       ⚠️ 注意事項<br>
@@ -85,11 +96,55 @@
   </div>
 
   <script>
+    // URLから有効期限パラメータ(?t=...)を取得
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("t");
+
+    function showExpired() {
+      document.getElementById("main-card").innerHTML = `
+        <div class="expired-box">
+          <h1>⛔ リンク期限切れ</h1>
+          <p>このURLの有効期限（5分間）が過ぎているか、無効なリンクです。<br>Discordで再度 <b>/start</b> を実行して新しいリンクを発行してください。</p>
+        </div>
+      `;
+    }
+
+    let expireTime = 0;
+    try {
+      if (!token) throw new Error("No token");
+      // Base64デコードして有効期限（UNIXタイムスタンプ）を取得
+      expireTime = parseInt(atob(token), 10);
+      if (isNaN(expireTime) || Date.now() > expireTime) {
+        showExpired();
+      }
+    } catch (e) {
+      showExpired();
+    }
+
+    // 1秒ごとに残り時間をカウントダウンし、0秒になったら即ロック
+    if (expireTime > Date.now()) {
+      const interval = setInterval(() => {
+        const remaining = expireTime - Date.now();
+        if (remaining <= 0) {
+          clearInterval(interval);
+          showExpired();
+        } else {
+          const min = Math.floor(remaining / 60000);
+          const sec = Math.floor((remaining % 60000) / 1000);
+          document.getElementById("timer-display").textContent =
+            `⏳ リンク有効期限: あと ${min}分${sec < 10 ? "0" : ""}${sec}秒`;
+        }
+      }, 1000);
+    }
+
     function startServer() {
+      if (Date.now() > expireTime) {
+        showExpired();
+        return;
+      }
       const s = String.fromCharCode(47);
       const url = "https:" + s + s + "falixnodes.net" + s + "s" + s + "2xgcom9yi7sgx?lang=en";
       
-      // 画面の中央付近に小さなウィンドウ（横500px × 縦650px）を開く
       const width = 500;
       const height = 650;
       const left = (window.screen.width - width) / 2;
