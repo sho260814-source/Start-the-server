@@ -76,10 +76,10 @@
   <div class="card">
     <h1>🎮 Happy-Server</h1>
     <div class="address">happy-server.falix.gg</div>
-    <p>下のボタンを押すと外部の起動ページが開きます。<br>人間確認のチェックを入れて起動してください。</p>
+    <p>下のボタンを押すと小さなウィンドウで起動ページが開きます。<br>人間確認のチェックを入れて起動してください。</p>
     <div class="warning">
       ⚠️ 注意事項<br>
-      怪しいので「Start the server」を押したら速やかにタブを消してください。
+      怪しいので「Start the server」を押したら速やかにウィンドウを消してください。
     </div>
     <button class="btn" onclick="startServer()">🚀 サーバーをスタート</button>
   </div>
@@ -88,7 +88,18 @@
     function startServer() {
       const s = String.fromCharCode(47);
       const url = "https:" + s + s + "falixnodes.net" + s + "s" + s + "2xgcom9yi7sgx?lang=en";
-      window.open(url, "_blank");
+      
+      // 画面の中央付近に小さなウィンドウ（横500px × 縦650px）を開く
+      const width = 500;
+      const height = 650;
+      const left = (window.screen.width - width) / 2;
+      const top = (window.screen.height - height) / 2;
+      
+      window.open(
+        url,
+        "ServerStartWindow",
+        `width=${width},height=${height},left=${left},top=${top},noopener,noreferrer`
+      );
     }
   </script>
 </body>
